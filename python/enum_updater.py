@@ -120,7 +120,7 @@ def transform_enum_to_const_object(file_path):
             content = file.read()
         
         # Регулярное выражение для поиска enum
-        enum_regex = r'enum\s+(\w+)\s*\{([^}]+)\}'
+        enum_regex = r'(?:export\s+|declare\s+|const\s+)?enum\s+(\w+)\s*\{([^}]+)\}'        
         
         replacements = []
         transformed_content = content
