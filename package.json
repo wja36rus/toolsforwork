@@ -1,0 +1,54 @@
+{
+  "name": "toolsforwork",
+  "displayName": "Tools for work",
+  "description": "Набор утилит для работы",
+  "version": "1.0.0",
+  "publisher": "worktools",
+  "author": "S. Kazmin",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:toolsforwork.update-enum"
+  ],
+  "icon": "images/icon.png",
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "toolsforwork.update-enum",
+        "title": "Преобразовать Enum в Object с типом"
+      }
+    ],
+    "menus": {
+      "command-palette": [
+        {
+          "command": "toolsforwork.update-enum",
+          "when": "editorLangId == typescript || editorLangId == typescriptreact"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "toolsforwork.update-enum",
+          "group": "navigation",
+          "when": "editorLangId == typescript || editorLangId == typescriptreact"
+        }
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wja36rus/toolsforwork"
+  },
+  "keywords": [
+    "typescript",
+    "enum",
+    "converter"
+  ],
+  "scripts": {
+    "publish": "vsce package --out ./dist"
+  }
+}
