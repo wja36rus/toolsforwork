@@ -88,7 +88,7 @@ def parse_enum_values(enum_body):
 
 def create_const_object(enum_name, values):
     """Создает const object из значений enum с сохранением оригинальных значений и комментариев"""
-    const_lines = [f"const {enum_name} = {{"]
+    const_lines = [f"export const {enum_name} = {{"]
     
     for item in values:
         key = item['key']
@@ -120,7 +120,7 @@ def transform_enum_to_const_object(file_path):
             content = file.read()
         
         # Регулярное выражение для поиска enum
-        enum_regex = r'(?:export\s+|declare\s+|const\s+)?enum\s+(\w+)\s*\{([^}]+)\}'        
+        enum_regex = r'(?:(?:export\s+)?(?:declare\s+)?(?:const\s+)?|(?:declare\s+)?(?:export\s+)?(?:const\s+)?|(?:const\s+)?(?:export\s+)?(?:declare\s+)?)enum\s+(\w+)\s*\{([^}]+)\}'        
         
         replacements = []
         transformed_content = content
