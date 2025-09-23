@@ -2,7 +2,7 @@
   "name": "toolsforwork",
   "displayName": "Tools for work",
   "description": "Набор утилит для работы",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "worktools",
   "author": "S. Kazmin",
   "engines": {
@@ -23,6 +23,14 @@
         "title": "Преобразовать Enum в Object с типом"
       }
     ],
+    "keybindings": [
+      {
+        "command": "toolsforwork.update-enum",
+        "key": "shift+d",
+        "mac": "shift+d",
+        "when": "editorTextFocus"
+      }
+    ],
     "menus": {
       "command-palette": [
         {
@@ -33,7 +41,7 @@
       "editor/context": [
         {
           "command": "toolsforwork.update-enum",
-          "group": "navigation",
+          "group": "typescript-tools@1",
           "when": "editorLangId == typescript || editorLangId == typescriptreact"
         }
       ]
