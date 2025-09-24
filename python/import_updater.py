@@ -192,15 +192,24 @@ def optimize_imports(file_path):
         type_usage = {}
         value_usage = {}
         
-        # Ищем типы в аннотациях (после : или ?) и в выражениях "in"
-        type_pattern = r'[:?]\s*(\b[T]?[A-Z][a-zA-Z]+\b)[,\s;)\]]|\bin\s+(\b[T]?[A-Z][a-zA-Z]+\b)\b|\[\s*\w+\s+in\s+(\b[T]?[A-Z][a-zA-Z]+\b)\s*\]'
+        # Ищем типы в различных контекстах
+        type_patterns = [
+            r'[:?]\s*(\b[T]?[A-Z][a-zA-Z]+\b)[,\s;)\]]',  # аннотации типов
+            r'\bin\s+(\b[T]?[A-Z][a-zA-Z]+\b)\b',         # выражения "in Type"
+            r'\[\s*\w+\s+in\s+(\b[T]?[A-Z][a-zA-Z]+\b)\s*\]',  # [key in Type]
+            r'<\s*(\b[T]?[A-Z][a-zA-Z]+\b)[^>]*>',        # дженерики <TType>
+            r'\btype\s+\w+\s*=\s*(\b[T]?[A-Z][a-zA-Z]+\b)\b',  # type Alias = TType
+            r'\bRecord\s*<\s*(\b[T]?[A-Z][a-zA-Z]+\b)[^>]*>',  # Record<TType, ...>
+            r'\bArray\s*<\s*(\b[T]?[A-Z][a-zA-Z]+\b)[^>]*>',   # Array<TType>
+            r'\bPromise\s*<\s*(\b[T]?[A-Z][a-zA-Z]+\b)[^>]*>', # Promise<TType>
+            r'\bMap\s*<\s*(\b[T]?[A-Z][a-zA-Z]+\b)[^>]*>',     # Map<TType>
+            r'\bSet\s*<\s*(\b[T]?[A-Z][a-zA-Z]+\b)[^>]*>',     # Set<TType>
+        ]
         
-        for match in re.finditer(type_pattern, content):
-            for i in range(1, 4):
-                if match.group(i):
-                    type_name = match.group(i)
-                    type_usage[type_name] = True
-                    break
+        for pattern in type_patterns:
+            for match in re.finditer(pattern, content):
+                type_name = match.group(1)
+                type_usage[type_name] = True
         
         # Ищем значения (использование через точку, например SomeEnum.Value)
         value_pattern = r'\b([A-Z][a-zA-Z]+)\.\w+'
@@ -209,13 +218,20 @@ def optimize_imports(file_path):
             value_usage[value_name] = True
         
         # Также ищем использование как значений (без точки)
-        value_usage_pattern = r'\b([A-Z][a-zA-Z]+)\s*\.|=\s*([A-Z][a-zA-Z]+)\b|\b([A-Z][a-zA-Z]+)\[|\[\s*([A-Z][a-zA-Z]+)\s*\]'
-        for match in re.finditer(value_usage_pattern, content):
-            for i in range(1, 5):
-                if match.group(i):
-                    value_name = match.group(i)
+        value_usage_patterns = [
+            r'\b([A-Z][a-zA-Z]+)\s*\.',    # SomeEnum.
+            r'=\s*([A-Z][a-zA-Z]+)\b',     # = SomeEnum
+            r'\b([A-Z][a-zA-Z]+)\[',       # SomeEnum[
+            r'\[\s*([A-Z][a-zA-Z]+)\s*\]', # [SomeEnum]
+            r'new\s+([A-Z][a-zA-Z]+)\b',   # new SomeEnum
+            r'\binstanceof\s+([A-Z][a-zA-Z]+)\b', # instanceof SomeEnum
+        ]
+        
+        for pattern in value_usage_patterns:
+            for match in re.finditer(pattern, content):
+                value_name = match.group(1)
+                if value_name:  # Проверяем, что группа захватила значение
                     value_usage[value_name] = True
-                    break
         
         # Обрабатываем каждый импорт
         def replace_import(match):
@@ -284,6 +300,20 @@ def optimize_imports(file_path):
         print("\nОтладочная информация:")
         print("Типы:", sorted(type_usage.keys()))
         print("Значения:", sorted(value_usage.keys()))
+        
+        # Детальная информация по каждому импорту
+        print("\nДетальный анализ импортов:")
+        for match in re.finditer(import_pattern, content):
+            import_body = match.group(1)
+            module_path = match.group(2)
+            items = [item.strip() for item in import_body.split(',') if item.strip()]
+            
+            print(f"Импорт из '{module_path}':")
+            for item in items:
+                is_type = item in type_usage
+                is_value = item in value_usage
+                usage_type = "тип" if is_type and not is_value else "значение" if is_value and not is_type else "оба" if is_type and is_value else "не определено"
+                print(f"  {item}: {usage_type}")
         
     except Exception as e:
         print(f"[ERROR] Ошибка при оптимизации импортов: {e}")
