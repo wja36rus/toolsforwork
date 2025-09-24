@@ -142,38 +142,42 @@ function activate(context) {
   let importUpdate = vscode.commands.registerCommand(
     "toolsforwork.update-import",
     async function () {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) return;
+
+      const errors = vscode.languages
+        .getDiagnostics(editor.document.uri)
+        .filter((d) => d.severity === vscode.DiagnosticSeverity.Error)
+        .sort((a, b) => a.range.start.line - b.range.start.line);
+
+      if (errors.length === 0) {
+        vscode.window.showInformationMessage("No errors found");
+        return;
+      }
+
+      const error = errors[0];
+
+      // Переходим к ошибке
+      const position = new vscode.Position(
+        error.range.start.line,
+        error.range.start.character
+      );
+      editor.selection = new vscode.Selection(position, position);
+      editor.revealRange(error.range);
+
+      // Ждем перед открытием Quick Fix
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // Открываем Quick Fix
+      await vscode.commands.executeCommand("editor.action.quickFix");
+
+      // Ждем пока откроется меню
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const editor = vscode.window.activeTextEditor;
-      if (editor) {
-        const errors = vscode.languages
-          .getDiagnostics(editor.document.uri)
-          .filter((d) => d.severity === vscode.DiagnosticSeverity.Error)
-          .sort((a, b) => a.range.start.line - b.range.start.line);
+      //Сохраняем окно
+      await vscode.commands.executeCommand("workbench.action.files.save");
 
-        if (errors.length > 0) {
-          const error = errors[0];
-          const position = new vscode.Position(
-            error.range.start.line,
-            error.range.start.character
-          );
-          editor.selection = new vscode.Selection(position, position);
-          editor.revealRange(error.range);
-        }
-
-        await vscode.commands.executeCommand("editor.action.quickFix");
-
-        // Ждем немного для появления меню
-        await new Promise((resolve) => setTimeout(resolve, 300));
-
-        // Выбираем опцию "Add type specifier" или аналогичную
-        await vscode.commands.executeCommand("selectFirstSuggestion");
-
-        // Применяем исправление
-        await vscode.commands.executeCommand(
-          "workbench.action.acceptSelectedQuickOpenItem"
-        );
-      }
+      vscode.window.showInformationMessage("All errors processed!");
     }
   );
 
