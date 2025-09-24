@@ -2,7 +2,7 @@
   "name": "toolsforwork",
   "displayName": "Tools for work",
   "description": "Набор утилит для работы",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "publisher": "worktools",
   "author": "S. Kazmin",
   "engines": {

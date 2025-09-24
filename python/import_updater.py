@@ -204,12 +204,14 @@ def optimize_imports(file_path):
             r'\bPromise\s*<\s*(\b[T]?[A-Z][a-zA-Z]+\b)[^>]*>', # Promise<TType>
             r'\bMap\s*<\s*(\b[T]?[A-Z][a-zA-Z]+\b)[^>]*>',     # Map<TType>
             r'\bSet\s*<\s*(\b[T]?[A-Z][a-zA-Z]+\b)[^>]*>',     # Set<TType>
+            r'\bas\s+(\b[T]?[A-Z][a-zA-Z]+\b)\b',              # as Type (приведение типов)
         ]
         
         for pattern in type_patterns:
             for match in re.finditer(pattern, content):
                 type_name = match.group(1)
-                type_usage[type_name] = True
+                if type_name:  # Проверяем, что группа захватила значение
+                    type_usage[type_name] = True
         
         # Ищем значения (использование через точку, например SomeEnum.Value)
         value_pattern = r'\b([A-Z][a-zA-Z]+)\.\w+'
@@ -219,19 +221,22 @@ def optimize_imports(file_path):
         
         # Также ищем использование как значений (без точки)
         value_usage_patterns = [
-            r'\b([A-Z][a-zA-Z]+)\s*\.',    # SomeEnum.
-            r'=\s*([A-Z][a-zA-Z]+)\b',     # = SomeEnum
-            r'\b([A-Z][a-zA-Z]+)\[',       # SomeEnum[
-            r'\[\s*([A-Z][a-zA-Z]+)\s*\]', # [SomeEnum]
-            r'new\s+([A-Z][a-zA-Z]+)\b',   # new SomeEnum
+            r'\b([A-Z][a-zA-Z]+)\s*\.',        # SomeEnum.
+            r'=\s*([A-Z][a-zA-Z]+)\b',         # = SomeEnum
+            r'\b([A-Z][a-zA-Z]+)\[',           # SomeEnum[
+            r'\[\s*([A-Z][a-zA-Z]+)\s*\]',     # [SomeEnum]
+            r'new\s+([A-Z][a-zA-Z]+)\b',       # new SomeEnum
             r'\binstanceof\s+([A-Z][a-zA-Z]+)\b', # instanceof SomeEnum
+            r'\btypeof\s+([A-Z][a-zA-Z]+)\b',  # typeof SomeEnum
         ]
         
         for pattern in value_usage_patterns:
             for match in re.finditer(pattern, content):
-                value_name = match.group(1)
-                if value_name:  # Проверяем, что группа захватила значение
-                    value_usage[value_name] = True
+                for i in range(1, 4):  # Проверяем все группы захвата
+                    value_name = match.group(i)
+                    if value_name:  # Проверяем, что группа захватила значение
+                        value_usage[value_name] = True
+                        break
         
         # Обрабатываем каждый импорт
         def replace_import(match):
@@ -283,9 +288,9 @@ def optimize_imports(file_path):
             
             # Если все элементы - типы, используем import type
             if not value_items and type_items:
-                return f'import type {{ {new_import_body} }} from \"{module_path}\";'
+                return f'import type {{{new_import_body}}} from \"{module_path}\";'
             else:
-                return f'import {{ {new_import_body} }} from \"{module_path}\";'
+                return f'import {{{new_import_body}}} from \"{module_path}\";'
         
         # Заменяем импорты
         new_content = re.sub(import_pattern, replace_import, content)
@@ -317,7 +322,7 @@ def optimize_imports(file_path):
         
     except Exception as e:
         print(f"[ERROR] Ошибка при оптимизации импортов: {e}")
-
+        
 def main():
     """Основная функция"""
     # Настраиваем кодировку
