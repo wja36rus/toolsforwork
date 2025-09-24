@@ -295,9 +295,9 @@ def optimize_imports(file_path):
             
             # Если все элементы - типы, используем import type
             if not value_items and type_items:
-                return f'import type {{{new_import_body}}} from \"{module_path}\";'
+                return f'import type {{ {new_import_body} }} from \"{module_path}\";'
             else:
-                return f'import {{{new_import_body}}} from \"{module_path}\";'
+                return f'import {{ {new_import_body} }} from \"{module_path}\";'
         
         # Заменяем импорты
         new_content = re.sub(import_pattern, replace_import, content)
