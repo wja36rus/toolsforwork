@@ -2,7 +2,7 @@
   "name": "toolsforwork",
   "displayName": "Tools for work",
   "description": "Набор утилит для работы",
-  "version": "1.0.7",
+  "version": "1.0.21",
   "publisher": "worktools",
   "author": "S. Kazmin",
   "engines": {
@@ -25,7 +25,7 @@
       },
       {
         "command": "toolsforwork.update-import",
-        "title": "Преобразовать импорты"
+        "title": "Исправление ошибок"
       }
     ],
     "keybindings": [

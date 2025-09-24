@@ -139,132 +139,45 @@ function activate(context) {
     }
   );
 
-  let importUpdater = vscode.commands.registerCommand(
+  let importUpdate = vscode.commands.registerCommand(
     "toolsforwork.update-import",
     async function () {
-      // Получаем активный текстовый редактор
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const editor = vscode.window.activeTextEditor;
+      if (editor) {
+        const errors = vscode.languages
+          .getDiagnostics(editor.document.uri)
+          .filter((d) => d.severity === vscode.DiagnosticSeverity.Error)
+          .sort((a, b) => a.range.start.line - b.range.start.line);
 
-      if (!editor) {
-        vscode.window.showErrorMessage("Нет активного редактора!");
-        return;
-      }
-
-      // Получаем путь к текущему файлу
-      const currentFile = editor.document.fileName;
-
-      // Проверяем, что файл TypeScript
-      if (!currentFile.endsWith(".ts") && !currentFile.endsWith(".tsx")) {
-        vscode.window.showWarningMessage(
-          "Расширение работает только с TypeScript файлами (.ts, .tsx)"
-        );
-        return;
-      }
-
-      // Получаем путь к Python скрипту
-      const extensionPath = context.extensionPath;
-      const pythonScriptPath = path.join(
-        extensionPath,
-        "python",
-        "import_updater.py"
-      );
-
-      // Проверяем существование Python скрипта
-      if (!fs.existsSync(pythonScriptPath)) {
-        vscode.window.showErrorMessage(
-          `Python скрипт не найден: ${pythonScriptPath}`
-        );
-        return;
-      }
-
-      // Показываем индикатор выполнения
-      vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: "Обновление импортов...",
-          cancellable: false,
-        },
-        async (progress) => {
-          return new Promise((resolve) => {
-            // Запускаем Python скрипт с указанием кодировки UTF-8
-            const pythonProcess = spawn(
-              "python",
-              ["-X", "utf8", pythonScriptPath, currentFile],
-              {
-                env: { ...process.env, PYTHONIOENCODING: "utf-8" },
-              }
-            );
-
-            let output = "";
-            let errorOutput = "";
-
-            pythonProcess.stdout.on("data", (data) => {
-              output += data.toString();
-            });
-
-            pythonProcess.stderr.on("data", (data) => {
-              errorOutput += data.toString();
-            });
-
-            pythonProcess.on("close", (code) => {
-              if (code === 0) {
-                // Успешное выполнение
-                vscode.window.showInformationMessage(
-                  "Импорты успешно преобразованы!"
-                );
-
-                // Показываем детальный вывод
-                if (output) {
-                  const outputChannel =
-                    vscode.window.createOutputChannel("Import Updater");
-                  outputChannel.clear();
-                  outputChannel.appendLine("Результат преобразования:");
-                  outputChannel.appendLine(output);
-                  outputChannel.show();
-                }
-
-                // Перезагружаем файл в редакторе
-                vscode.commands.executeCommand("workbench.action.files.revert");
-              } else {
-                // Ошибка выполнения
-                const errorMessage =
-                  errorOutput || output || "Неизвестная ошибка";
-                vscode.window.showErrorMessage(
-                  `Ошибка при преобразовании импортов: ${errorMessage}`
-                );
-
-                if (errorOutput || output) {
-                  const errorChannel = vscode.window.createOutputChannel(
-                    "Import Updater Errors"
-                  );
-                  errorChannel.clear();
-                  errorChannel.appendLine("Ошибки:");
-                  if (errorOutput) errorChannel.appendLine(errorOutput);
-                  if (output) errorChannel.appendLine(output);
-                  errorChannel.show();
-                }
-              }
-              resolve();
-            });
-
-            pythonProcess.on("error", (error) => {
-              vscode.window.showErrorMessage(
-                `Не удалось запустить Python: ${error.message}`
-              );
-              if (error.code === "ENOENT") {
-                vscode.window.showErrorMessage(
-                  "Python не установлен или не добавлен в PATH"
-                );
-              }
-              resolve();
-            });
-          });
+        if (errors.length > 0) {
+          const error = errors[0];
+          const position = new vscode.Position(
+            error.range.start.line,
+            error.range.start.character
+          );
+          editor.selection = new vscode.Selection(position, position);
+          editor.revealRange(error.range);
         }
-      );
+
+        await vscode.commands.executeCommand("editor.action.quickFix");
+
+        // Ждем немного для появления меню
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // Выбираем опцию "Add type specifier" или аналогичную
+        await vscode.commands.executeCommand("selectFirstSuggestion");
+
+        // Применяем исправление
+        await vscode.commands.executeCommand(
+          "workbench.action.acceptSelectedQuickOpenItem"
+        );
+      }
     }
   );
 
-  context.subscriptions.push(disposable, importUpdater);
+  context.subscriptions.push(disposable, importUpdate);
 }
 
 function deactivate() {}
