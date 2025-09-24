@@ -2,7 +2,7 @@
   "name": "toolsforwork",
   "displayName": "Tools for work",
   "description": "Набор утилит для работы",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "publisher": "worktools",
   "author": "S. Kazmin",
   "engines": {
@@ -12,7 +12,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:toolsforwork.update-enum"
+    "onCommand:toolsforwork.update-enum",
+    "onCommand:toolsforwork.update-import"
   ],
   "icon": "images/icon.png",
   "main": "./extension.js",
@@ -21,6 +22,10 @@
       {
         "command": "toolsforwork.update-enum",
         "title": "Преобразовать Enum в Object с типом"
+      },
+      {
+        "command": "toolsforwork.update-import",
+        "title": "Преобразовать импорты"
       }
     ],
     "keybindings": [
@@ -29,6 +34,12 @@
         "key": "shift+d",
         "mac": "shift+d",
         "when": "editorTextFocus"
+      },
+      {
+        "command": "toolsforwork.update-import",
+        "key": "shift+i",
+        "mac": "shift+i",
+        "when": "editorTextFocus"
       }
     ],
     "menus": {
@@ -36,11 +47,20 @@
         {
           "command": "toolsforwork.update-enum",
           "when": "editorLangId == typescript || editorLangId == typescriptreact"
+        },
+        {
+          "command": "toolsforwork.update-import",
+          "when": "editorLangId == typescript || editorLangId == typescriptreact"
         }
       ],
       "editor/context": [
         {
           "command": "toolsforwork.update-enum",
+          "group": "typescript-tools@1",
+          "when": "editorLangId == typescript || editorLangId == typescriptreact"
+        },
+        {
+          "command": "toolsforwork.update-import",
           "group": "typescript-tools@1",
           "when": "editorLangId == typescript || editorLangId == typescriptreact"
         }
