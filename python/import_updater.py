@@ -205,6 +205,9 @@ def optimize_imports(file_path):
             r'\bMap\s*<\s*(\b[T]?[A-Z][a-zA-Z]+\b)[^>]*>',     # Map<TType>
             r'\bSet\s*<\s*(\b[T]?[A-Z][a-zA-Z]+\b)[^>]*>',     # Set<TType>
             r'\bas\s+(\b[T]?[A-Z][a-zA-Z]+\b)\b',              # as Type (приведение типов)
+            r'\bexport\s+type\s+\w+\s*=\s*(\b[T]?[A-Z][a-zA-Z]+\b)\b',  # export type TWindow = TType
+            r'\bexport\s+interface\s+\w+\s*extends\s*(\b[T]?[A-Z][a-zA-Z]+\b)\b',  # export interface extends TType
+            r'\bexport\s+\w+\s*:\s*(\b[T]?[A-Z][a-zA-Z]+\b)\b',  # export variable: TType
         ]
         
         for pattern in type_patterns:
@@ -228,6 +231,10 @@ def optimize_imports(file_path):
             r'new\s+([A-Z][a-zA-Z]+)\b',       # new SomeEnum
             r'\binstanceof\s+([A-Z][a-zA-Z]+)\b', # instanceof SomeEnum
             r'\btypeof\s+([A-Z][a-zA-Z]+)\b',  # typeof SomeEnum
+            r'\bexport\s+default\s+([A-Z][a-zA-Z]+)\b',  # export default SomeEnum
+            r'\bexport\s+\{\s*([A-Z][a-zA-Z]+)\s*\}',    # export { SomeEnum }
+            r'\bexport\s+const\s+\w+\s*=\s*([A-Z][a-zA-Z]+)\b',  # export const x = SomeEnum
+            r'\bexport\s+function\s+\w+\s*\(\w+\s*:\s*([A-Z][a-zA-Z]+)\b',  # export function(x: SomeEnum)
         ]
         
         for pattern in value_usage_patterns:
@@ -322,7 +329,7 @@ def optimize_imports(file_path):
         
     except Exception as e:
         print(f"[ERROR] Ошибка при оптимизации импортов: {e}")
-        
+
 def main():
     """Основная функция"""
     # Настраиваем кодировку
