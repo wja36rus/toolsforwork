@@ -181,7 +181,47 @@ function activate(context) {
     }
   );
 
-  context.subscriptions.push(disposable, importUpdate);
+  let prefixUpdate = vscode.commands.registerCommand(
+    "toolsforwork.update-prefix",
+    async function () {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) return;
+
+      const selection = editor.selection;
+      if (selection.isEmpty) {
+        vscode.window.showWarningMessage("Please select a word first");
+        return;
+      }
+
+      // Получаем выделенный текст
+      const selectedText = editor.document.getText(selection);
+
+      // Добавляем префикс T
+      const newText = "T" + selectedText;
+
+      // Заменяем выделенный текст
+      await editor.edit((editBuilder) => {
+        editBuilder.replace(selection, newText);
+      });
+
+      // Переходим в конец НОВОГО слова (с префиксом)
+      const newPosition = new vscode.Position(
+        selection.start.line,
+        selection.start.character + newText.length
+      );
+      editor.selection = new vscode.Selection(newPosition, newPosition);
+
+      // Ждем немного
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      // Эмулируем Ctrl+Space для автодополнения импорта
+      await vscode.commands.executeCommand("editor.action.triggerSuggest");
+
+      vscode.window.showInformationMessage(`Added prefix T to ${selectedText}`);
+    }
+  );
+
+  context.subscriptions.push(disposable, importUpdate, prefixUpdate);
 }
 
 function deactivate() {}

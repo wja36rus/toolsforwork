@@ -2,7 +2,7 @@
   "name": "toolsforwork",
   "displayName": "Tools for work",
   "description": "Набор утилит для работы",
-  "version": "1.0.30",
+  "version": "1.0.36",
   "publisher": "worktools",
   "author": "S. Kazmin",
   "engines": {
@@ -26,6 +26,10 @@
       {
         "command": "toolsforwork.update-import",
         "title": "Исправление ошибок"
+      },
+      {
+        "command": "toolsforwork.update-prefix",
+        "title": "Добавить префикс"
       }
     ],
     "keybindings": [
@@ -37,8 +41,14 @@
       },
       {
         "command": "toolsforwork.update-import",
-        "key": "shift+i",
-        "mac": "shift+i",
+        "key": "ctrl+alt+[",
+        "mac": "ctrl+alt+[",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "toolsforwork.update-prefix",
+        "key": "ctrl+alt+]",
+        "mac": "ctrl+alt+]",
         "when": "editorTextFocus"
       }
     ],
@@ -51,6 +61,10 @@
         {
           "command": "toolsforwork.update-import",
           "when": "editorLangId == typescript || editorLangId == typescriptreact"
+        },
+        {
+          "command": "toolsforwork.update-prefix",
+          "when": "editorLangId == typescript || editorLangId == typescriptreact"
         }
       ],
       "editor/context": [
@@ -61,6 +75,11 @@
         },
         {
           "command": "toolsforwork.update-import",
+          "group": "typescript-tools@1",
+          "when": "editorLangId == typescript || editorLangId == typescriptreact"
+        },
+        {
+          "command": "toolsforwork.update-prefix",
           "group": "typescript-tools@1",
           "when": "editorLangId == typescript || editorLangId == typescriptreact"
         }
